@@ -4,7 +4,9 @@ from flask_marshmallow import Marshmallow
 import os
 app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname('crud_db.py'))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'crud.sqlite')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'crud.db')
+app.config['SECRET_KEY'] = "\x04w\x94\xc5\xb0dT\xe4nY1\x97\x87Sz\x1b!\x07\xfb'\xb5\xfc\xe5m"
+app.config['DEBUG'] = True
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
@@ -37,15 +39,14 @@ def add_user():
     db.session.add(new_user)
     db.session.commit()
 
-    return jsonify(new_user)
+    return jsonify(user_schema.dumps(new_user))
 	
 
 # endpoint to show all users
 @app.route("/user", methods=["GET"])
 def get_user():
     all_users = User.query.all()
-    result = users_schema.dump(all_users)
-    return jsonify(result.data)
+    return jsonify(users_schema.dumps(all_users))
 
 # endpoint to get user detail by id
 @app.route("/user/<id>", methods=["GET"])
@@ -60,7 +61,7 @@ def user_update(id):
     username = request.json['username']
     email = request.json['email']
 
-    user.email = email
+    user.email = email  
     user.username = username
 
     db.session.commit()
